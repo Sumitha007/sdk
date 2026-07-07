@@ -33,7 +33,7 @@ def _build_runtime() -> types.Runtime:
     return types.Runtime(
         name="test-runtime",
         trainer=runtime_trainer,
-        kind=constants.TRAINING_RUNTIME_KIND,
+        kind=constants.RuntimeKind.TRAINING_RUNTIME,
     )
 
 
@@ -428,7 +428,7 @@ def test_get_script_for_python_packages(test_case):
                 "runtime": types.Runtime(
                     name="no-trainer",
                     trainer=None,
-                    kind=constants.TRAINING_RUNTIME_KIND,
+                    kind=constants.RuntimeKind.TRAINING_RUNTIME,
                 ),
             },
             expected_error=ValueError,
