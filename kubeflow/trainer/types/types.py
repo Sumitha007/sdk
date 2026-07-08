@@ -244,6 +244,11 @@ class TrainerType(Enum):
     CUSTOM_TRAINER = CustomTrainer.__name__
     BUILTIN_TRAINER = BuiltinTrainer.__name__
 
+class RuntimeKind(Enum):
+    TRAINING_RUNTIME = constants.TRAINING_RUNTIME_KIND
+    CLUSTER_TRAINING_RUNTIME = constants.CLUSTER_TRAINING_RUNTIME_KIND
+
+
 
 # Representation for the Trainer of the runtime.
 @dataclass
@@ -269,6 +274,7 @@ class RuntimeTrainer:
 class Runtime:
     name: str
     trainer: RuntimeTrainer
+    kind: RuntimeKind | None = None
     pretrained_model: str | None = None
 
 
