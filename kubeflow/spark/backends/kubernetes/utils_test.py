@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Unit tests for Kubernetes Spark backend utilities."""
-
 from kubeflow_spark_api import models
 import pytest
 
@@ -156,9 +155,7 @@ class TestBuildSparkConnectCr:
             namespace="default",
             spark_conf=spark_conf,
         )
-        assert spark_connect.spec.spark_conf["spark.jars"].endswith(
-            f"spark-connect_{constants.SPARK_CONNECT_PACKAGE_SCALA_VERSION}-{constants.DEFAULT_SPARK_VERSION}.jar"
-        )
+        assert "spark.jars" not in spark_connect.spec.spark_conf
         assert spark_connect.spec.spark_conf["spark.sql.adaptive.enabled"] == "true"
 
     def test_spark_conf_overrides_binding_address(self):
@@ -223,9 +220,7 @@ class TestBuildSparkConnectCr:
             namespace="default",
             spark_conf={"spark.app.name": "my-spark-app"},
         )
-        assert spark_connect.spec.spark_conf["spark.jars"].endswith(
-            f"spark-connect_{constants.SPARK_CONNECT_PACKAGE_SCALA_VERSION}-{constants.DEFAULT_SPARK_VERSION}.jar"
-        )
+        assert "spark.jars" not in spark_connect.spec.spark_conf
         assert spark_connect.spec.spark_conf["spark.app.name"] == "my-spark-app"
 
     def test_precedence_executor_instances(self):

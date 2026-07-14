@@ -17,6 +17,7 @@
 from kubeflow.common.types import KubernetesBackendConfig
 from kubeflow.spark.api.spark_client import SparkClient
 from kubeflow.spark.types.options import (
+    AddConnectJar,
     Annotations,
     Labels,
     Name,
@@ -40,6 +41,7 @@ __all__ = [
     "SparkConnectInfo",
     "SparkConnectState",
     # Options (KEP-107 extensibility pattern - callable pattern like trainer SDK)
+    "AddConnectJar",
     "Annotations",
     "Labels",
     "Name",
