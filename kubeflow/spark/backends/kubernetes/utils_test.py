@@ -67,6 +67,20 @@ def minimal_spec():
         sparkVersion=constants.DEFAULT_SPARK_VERSION,
         server=models.SparkV1alpha1ServerSpec(),
         executor=models.SparkV1alpha1ExecutorSpec(),
+    @pytest.mark.parametrize(
+        "k8s_memory,expected_spark",
+        [
+            ("4Gi", "4g"),
+            ("512Mi", "512m"),
+            ("8Gi", "8g"),
+            ("1Ti", "1t"),
+            ("4g", "4g"),
+            ("512m", "512m"),
+            ("1.5Gi", "1536m"),
+            ("2G", "2000000000"),
+            ("512M", "512000000"),
+            ("1T", "1000000000000"),
+        ],
     )
 
 
