@@ -16,6 +16,7 @@
 
 from datetime import datetime
 import multiprocessing
+import re
 from unittest.mock import Mock, patch
 
 from kubeflow_spark_api import models
@@ -54,6 +55,7 @@ from kubeflow.spark.types.types import (
     SparkConnectState,
     SparkJobStatus,
 )
+
 
 # --------------------------
 # Fixtures
@@ -198,7 +200,12 @@ def sample_function_with_args(name: str, age: int):
 )
 def test_memory_kubernetes_to_spark(test_case: TestCase) -> None:
     """Tests _memory_kubernetes_to_spark."""
-    assert _memory_kubernetes_to_spark(test_case.config["k8s_memory"]) == test_case.expected_output
+    result = _memory_kubernetes_to_spark(test_case.config["k8s_memory"])
+
+    assert result == test_case.expected_output
+
+    if test_case.config["k8s_memory"] == "1.5Gi":
+        assert re.fullmatch(r"\d+[kmgtp]", result)
 
 
 @pytest.mark.parametrize(
@@ -1058,6 +1065,7 @@ def test_resolve_driver_resources(test_case: TestCase) -> None:
     elif test_case.name == "fractional driver memory":
         assert cores == 2
         assert memory == "1536m"
+        assert re.fullmatch(r"\d+[kmgtp]", memory)
 
     print("test execution complete")
 
@@ -1145,6 +1153,7 @@ def test_resolve_executor_resources(test_case: TestCase) -> None:
         assert instances == constants.DEFAULT_NUM_EXECUTORS
         assert cores == 2
         assert memory == "1536m"
+        assert re.fullmatch(r"\d+[kmgtp]", memory)
 
     print("test execution complete")
 
