@@ -206,15 +206,13 @@ def _memory_kubernetes_to_spark(memory: str) -> str:
         return memory
 
     match = re.match(
-        r"^(\d+(?:\.\d+)?)\s*([KMGTPE]i?|k|m|g|t|p|e|kb|mb|gb|tb)?$",
+        r"^(\d+(?:\.\d+)?)\s*([KMGTPE]i?|[kmgtp]b?)$",
         memory,
-        re.IGNORECASE,
     )
     if not match:
         return memory
 
-    coefficient = match.group(1)
-    suffix = match.group(2) or ""
+    coefficient, suffix = match.group(1), match.group(2) or ""
     suffix_lower = suffix.lower()
 
     exponent_by_suffix = {
@@ -234,31 +232,39 @@ def _memory_kubernetes_to_spark(memory: str) -> str:
         "p": 50,
         "pb": 50,
         "ei": 60,
+        "e": 60,
     }
 
     if suffix_lower not in exponent_by_suffix:
         return memory
 
     exponent = exponent_by_suffix[suffix_lower]
-    # Kubernetes decimal SI units -> exact bytes
-    if suffix in {"K", "M", "G", "T", "P", "E"}:
-        decimal_units = {
-            "K": 1000,
-            "M": 1000**2,
-            "G": 1000**3,
-            "T": 1000**4,
-            "P": 1000**5,
-            "E": 1000**6,
-        }
-        total_bytes = math.ceil(float(coefficient) * decimal_units[suffix])
-        return f"{math.ceil(total_bytes / (2**20))}m"
-    spark_suffix = {10: "k", 20: "m", 30: "g", 40: "t", 50: "p"}.get(exponent)
-    if "." not in coefficient and spark_suffix is not None:
+
+    # Kubernetes quantities are fixed-point, so scale the coefficient
+    # into an integer and keep all arithmetic exact.
+    whole, _, fraction = coefficient.partition(".")
+    scaled_coefficient = int(whole + fraction)
+    scale = 10 ** len(fraction)
+
+    # Kubernetes decimal SI units (case-sensitive) -> absolute MiB.
+    if suffix in {"k", "M", "G", "T", "P", "E"}:
+        multiplier = 1000 ** (exponent // 10)
+        mebibytes = scaled_coefficient * multiplier // (scale * 2**20)
+        return f"{max(mebibytes, 1)}m"
+
+    spark_suffix = {
+        10: "k",
+        20: "m",
+        30: "g",
+        40: "t",
+        50: "p",
+    }.get(exponent)
+
+    if scale == 1 and spark_suffix is not None:
         return coefficient + spark_suffix
 
-    total_bytes = math.ceil(float(coefficient) * (2**exponent))
-
-    return f"{math.ceil(total_bytes / (2**20))}m"
+    mebibytes = scaled_coefficient * (2**exponent) // (scale * 2**20)
+    return f"{max(mebibytes, 1)}m"
 
 
 def _validate_cpu_value(cpu: str | int | None) -> int:

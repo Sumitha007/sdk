@@ -56,7 +56,6 @@ from kubeflow.spark.types.types import (
     SparkJobStatus,
 )
 
-
 # --------------------------
 # Fixtures
 # --------------------------
@@ -69,21 +68,6 @@ def minimal_spec():
         sparkVersion=constants.DEFAULT_SPARK_VERSION,
         server=models.SparkV1alpha1ServerSpec(),
         executor=models.SparkV1alpha1ExecutorSpec(),
-    @pytest.mark.parametrize(
-        "k8s_memory,expected_spark",
-        [
-            ("4Gi", "4g"),
-            ("512Mi", "512m"),
-            ("8Gi", "8g"),
-            ("1Ti", "1t"),
-            ("4g", "4g"),
-            ("512m", "512m"),
-            ("1.5Gi", "1536m"),
-            ("512k", "512000"),
-            ("2G", "2000000000"),
-            ("512M", "512000000"),
-            ("1T", "1000000000000"),
-        ],
     )
 
 
@@ -114,11 +98,6 @@ def mock_k8s_backend():
     backend = Mock(spec=KubernetesBackend)
     backend.__class__ = KubernetesBackend
     return backend
-
-    def test_missing_hostname(self):
-        """U16: Missing hostname raises ValueError."""
-        with pytest.raises(ValueError, match="Host is required"):
-            validate_spark_connect_url("sc://:15002")
 
 
 @pytest.fixture
@@ -194,12 +173,12 @@ def sample_function_with_args(name: str, age: int):
         TestCase(
             name="Convert decimal M to MiB",
             config={"k8s_memory": "512M"},
-            expected_output="489m",
+            expected_output="488m",
         ),
         TestCase(
             name="Convert decimal T to MiB",
             config={"k8s_memory": "1T"},
-            expected_output="953675m",
+            expected_output="953674m",
         ),
         TestCase(
             name="Convert fractional Gi to Mi",
